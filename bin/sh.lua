@@ -1,0 +1,1 @@
+dofile("usr/bin/lsh.lua")
