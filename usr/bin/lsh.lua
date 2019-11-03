@@ -10,9 +10,15 @@ local is_superuser = true -- single user mode!
 local current_user = "root"
 
 local prompt = is_superuser and "#" or "$"
-local currentDir = {}
+_shell_currentDir = {"test", "purpose", "dirs"}
+
+--- environmental varaibles
+env = {}
+env.PWD = "/" .. table.concat(_shell_currentDir, "/")
+--- end of environmental variables
+
 local function printPrompt()
-    io.write("root:/"..table.concat(currentDir, "/")..prompt.." ")
+    io.write("root:"..env.PWD..prompt.." ")
 end
 
 require("etc/motd")
@@ -39,11 +45,13 @@ local function parse_user_input(s)
     if s:len() == 0 then return nil end
     -- trim indents
     if s:byte() == 32 then
-        k = 2
-        while s:byte(k) == 32 do
-            k = k + 1
-        end
+        k = 2 while s:byte(k) == 32 do k = k + 1 end
         s = s:sub(k)
+    end
+    -- trim extra spaces
+    if s:byte(s:len()) == 32 then
+        k = s:len() - 1 while s:byte(k) == 32 do k = k - 1 end
+        s = s:sub(1, k)
     end
 
     -- states
@@ -94,14 +102,19 @@ _lix_invoke = function(args)
     for i = 1, #LIX_PATH do
         local p = LIX_PATH[i]
         invoke_status, invoke_f = pcall(function()
-            loadfile(p .. bin_name)(table.unpack(t_args))
+            local t = loadfile(p .. bin_name)
+            if t then
+                t(table.unpack(t_args))
+            else
+                error(bin_name..": command not found")
+            end
         end)
 
         if invoke_status then break end
     end
 
     -- print "no such file or whatever" message
-    if not invoke_status then print(invoke_f) end
+    if not invoke_status then print("error: "..invoke_f) end
 end
 --- end of Application Stub
 
@@ -111,7 +124,7 @@ while true do
     printPrompt()
     local user_input = parse_user_input(io.read())
     if user_input then
-        --print("debug print;") for i, v in ipairs(user_input) do print(tostring(i).."\t"..v) end
+        --print("debug print;") for i, v in ipairs(user_input) do print(i, v) end
         _lix_invoke(user_input)
     end
 
