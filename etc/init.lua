@@ -6,6 +6,9 @@
 --- DateTime: 2019-11-03 02:32
 ---
 
+--- load some compatibility hacks
+dofile("etc/lua5152compat.lua")
+
 --- basic OS info
 _G.LIX_VERSION = "0.1"
 _G.LIX_LOGO =     [[

@@ -10,15 +10,22 @@ local is_superuser = true -- single user mode!
 local current_user = "root"
 
 local prompt = is_superuser and "#" or "$"
-_shell_currentDir = {"test", "purpose", "dirs"}
+local shell_currentDir = {"test", "purpose", "dirs"}
 
 --- environmental varaibles
 env = {}
-env.PWD = "/" .. table.concat(_shell_currentDir, "/")
+env.PWD = "/" .. table.concat(shell_currentDir, "/")
 --- end of environmental variables
 
 local function printPrompt()
     io.write("root:"..env.PWD..prompt.." ")
+end
+
+local internal_commands = {}
+internal_commands.cd = function(args)
+    for i, v in ipairs(shell_currentDir) do
+        print(i, v)
+    end
 end
 
 require("etc/motd")
@@ -90,27 +97,33 @@ end
 ------ t[3] = args1'
 ------ t[4] = args2'            (' indicates string end)invoke = function(args)
 _lix_invoke = function(args)
-    local bin_name = args[1] -- call name
-    local t_args = {} -- call arguments
-    for i = 2, #args do t_args[i - 1] = args[i] end
+    local bin_name = args[1] -- call name with .lua extension attached
+    local _t_args = {} -- call arguments
+    for i = 2, #args do _t_args[i - 1] = args[i] end
+    local call_args = unpack(_t_args)
 
     if (bin_name:lower():sub(-4) ~= ".lua") then bin_name = bin_name .. ".lua" end
 
     -- iterate thru LIX_PATH
+    local internal_f = internal_commands[args[1]]
     local invoke_status
     local invoke_f
-    for i = 1, #LIX_PATH do
-        local p = LIX_PATH[i]
-        invoke_status, invoke_f = pcall(function()
-            local t = loadfile(p .. bin_name)
-            if t then
-                t(table.unpack(t_args))
-            else
-                error(bin_name..": command not found")
-            end
-        end)
+    if type(internal_f) == "function" then
+        invoke_status, invoke_f = pcall(function() internal_f(call_args) end)
+    else
+        for i = 1, #LIX_PATH do
+            local p = LIX_PATH[i]
+            invoke_status, invoke_f = pcall(function()
+                local t = loadfile(p .. bin_name)
+                if t then
+                    t(call_args)
+                else
+                    error(bin_name..": command not found")
+                end
+            end)
 
-        if invoke_status then break end
+            if invoke_status then break end
+        end
     end
 
     -- print "no such file or whatever" message
