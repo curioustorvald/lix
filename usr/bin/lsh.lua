@@ -4,92 +4,71 @@
 --- DateTime: 2019-11-03 02:02
 ---
 
+require("etc/motd")
+require("shellparser")
+
 local args = {...}
 
 local is_superuser = true -- single user mode!
 local current_user = "root"
 
 local prompt = is_superuser and "#" or "$"
-local shell_currentDir = {"test", "purpose", "dirs"}
+local shell_currentDir = {}
+
+local function printPrompt()
+    io.write("root:"..env.PWD..prompt.." ")
+end
+
+local function recalc_PWD()
+    return "/" .. table.concat(shell_currentDir, "/")
+end
+
+local internal_commands = {}
+internal_commands.cd = function(args)
+    local dirs = args[1]
+    local sb = ""
+    local c = 1
+
+    if dirs == nil then return end
+
+    -- does the cd dir begins with '/'?
+    if dirs:byte(1) == 0x2F then
+        shell_currentDir = {}
+        c = 2
+    end
+
+    while c <= dirs:len() do
+        local b = dirs:byte(c)
+
+        if b == 0x2F or c == dirs:len() then
+            if c == dirs:len() then sb = sb .. string.char(b) end
+
+            if sb == "." or sb == "" then
+                -- do nothing
+            elseif sb == ".." then
+                -- ignore "stack empty error"
+                table.remove(shell_currentDir)
+            else
+                -- TODO: check if the dir is actually there
+                table.insert(shell_currentDir, sb)
+            end
+
+            sb = ""
+        else
+            sb = sb .. string.char(b)
+        end
+
+        c = c + 1
+    end
+
+    env.PWD = recalc_PWD()
+end
 
 --- environmental varaibles
 env = {}
 env.PWD = "/" .. table.concat(shell_currentDir, "/")
 --- end of environmental variables
 
-local function printPrompt()
-    io.write("root:"..env.PWD..prompt.." ")
-end
-
-local internal_commands = {}
-internal_commands.cd = function(args)
-    for i, v in ipairs(shell_currentDir) do
-        print(i, v)
-    end
-end
-
-require("etc/motd")
-
---- parse input into args[], where:
---- input: tar -xvf out "file1 file2" file3
---- t[1] = tar'
---- t[2] = -xvf'
---- t[3] = out'
---- t[4] = file1 file2'
---- t[5] = file3'     (' indicates string end)
-local function parse_user_input(s)
-    local t = {}
-    local sb = "" -- string buffer
-
-    function dispatch_sb()
-        if sb:len() > 0 then
-            table.insert(t, sb)
-            sb = ""
-        end
-    end
-
-    -- null string
-    if s:len() == 0 then return nil end
-    -- trim indents
-    if s:byte() == 32 then
-        k = 2 while s:byte(k) == 32 do k = k + 1 end
-        s = s:sub(k)
-    end
-    -- trim extra spaces
-    if s:byte(s:len()) == 32 then
-        k = s:len() - 1 while s:byte(k) == 32 do k = k - 1 end
-        s = s:sub(1, k)
-    end
-
-    -- states
-    local quotation_mode -- nil, '(0x22), "(0x27)
-    local escape_mode = false
-    for i = 1, s:len() do
-        local v = s:byte(i)
-
-        if i == s:len() then
-            if v ~= quotation_mode then
-                sb = sb .. string.char(v)
-            end
-            dispatch_sb()
-        elseif quotation_mode then
-            if v == quotation_mode then
-                quotation_mode = nil
-                dispatch_sb()
-            else
-                sb = sb .. string.char(v)
-            end
-        elseif not quotation_mode and (v == 0x22 or v == 0x27) then
-            quotation_mode = v
-        elseif not quotation_mode and v == 0x20 then
-            dispatch_sb()
-        else
-            sb = sb .. string.char(v)
-        end
-    end
-
-    return t
-end
 
 --- example input: lsh path/to/script.lua args1 args2
 ------ t[1] = lsh'
@@ -109,7 +88,7 @@ _lix_invoke = function(args)
     local invoke_status
     local invoke_f
     if type(internal_f) == "function" then
-        invoke_status, invoke_f = pcall(function() internal_f(call_args) end)
+        invoke_status, invoke_f = pcall(function() internal_f(_t_args) end)
     else
         for i = 1, #LIX_PATH do
             local p = LIX_PATH[i]
@@ -135,7 +114,7 @@ print(motd[1])
 
 while true do
     printPrompt()
-    local user_input = parse_user_input(io.read())
+    local user_input = shell.parse(io.read())
     if user_input then
         --print("debug print;") for i, v in ipairs(user_input) do print(i, v) end
         _lix_invoke(user_input)
