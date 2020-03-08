@@ -14,6 +14,10 @@ doc.tabulate = function(list)
             longest = l
         end
     end
-    TODO()
+    -- TODO print in pretty way
+    -- this placeholder will just print them naively
+    for _, v in pairs(list) do
+    	print(v)
+    end
 end
     

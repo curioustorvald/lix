@@ -4,6 +4,8 @@
 --- DateTime: 2019-11-03 22:00
 ---
 
+require("document")
+
 local args = {...}
 local dir = args[1] or env.PWD
 
@@ -17,10 +19,13 @@ end
 --print("lsdir", dir)
 --print("realdir", realdir)
 
+local names = {}
 for name, _ in fs.list(dir) do
     if fs.isDirectory(dir .. "/" .. name) then
-        print(name .. "/")
+        table.insert(names, name .. "/")
     else
-        print(name)
+        table.insert(names, name)
     end
 end
+table.sort(names)
+doc.tabulate(names)

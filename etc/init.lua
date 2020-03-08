@@ -44,7 +44,7 @@ end
 
 
 --- continue to load necessary constants
-dofile("etc/filesystem.lua")
+dofile("etc/filesystem_posix.lua")
 
 
 
