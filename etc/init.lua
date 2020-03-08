@@ -9,6 +9,7 @@
 --- load some compatibility hacks
 dofile("etc/lua5152compat.lua")
 
+
 --- basic OS info
 _G.LIX_VERSION = "0.1"
 _G.LIX_LOGO =     [[
@@ -35,31 +36,16 @@ _G.LIX_PATH = { -- used by lsh
 --- if this line does not work, it must be set by the Lua VM (LuaJ)
 package.path = "?.lua;usr/include/?.lua;"
 
---- probes system if required libraries are there
-local dependencies = {
-    ["lfs"] = "luafilesystem"
-}
-
-local all_packs_are_there = true
-for k, v in pairs(dependencies) do
-    if not pcall(function() require(k) end) then
-        all_packs_are_there = false
-        print("Required package not found, please install it by running:")
-        print("    luarocks install "..v)
-    end
-
+_G.LIX_MSG_INSTALL_PACKAGE = function(packname)
+    print("Required package not found, please install it by running:")
+        print("    luarocks install "..packname)
 end
-if not all_packs_are_there then
-    return 1
-end
+
 
 
 --- continue to load necessary constants
+dofile("etc/filesystem.lua")
 
---- the real pwd of current operation system (Windows or Linux)
---- for virtualised environment (e.g. OpenComputers mod for Minecraft), this
----   field must be kept as an empty string.
-_G.LIX_REAL_PWD = lfs.currentdir()
 
 
 --- launch system shell in single user mode
