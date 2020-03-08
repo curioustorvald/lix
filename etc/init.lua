@@ -53,5 +53,14 @@ if not all_packs_are_there then
     return 1
 end
 
+
+--- continue to load necessary constants
+
+--- the real pwd of current operation system (Windows or Linux)
+--- for virtualised environment (e.g. OpenComputers mod for Minecraft), this
+---   field must be kept as an empty string.
+_G.LIX_REAL_PWD = lfs.currentdir()
+
+
 --- launch system shell in single user mode
 dofile("bin/sh.lua")

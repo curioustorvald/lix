@@ -20,7 +20,7 @@ local function printPrompt()
 end
 
 local function recalc_PWD()
-    return "/" .. table.concat(shell_currentDir, "/")
+    return "/" .. table.concat(shell_currentDir, "/") .. (#shell_currentDir > 0 and "/" or "")
 end
 
 local internal_commands = {}
@@ -66,7 +66,8 @@ end
 
 --- environmental varaibles
 env = {}
-env.PWD = "/" .. table.concat(shell_currentDir, "/")
+--- PWD must begin and end with '/'
+env.PWD = recalc_PWD()
 --- end of environmental variables
 
 

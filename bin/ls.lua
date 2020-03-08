@@ -6,3 +6,24 @@
 
 local args = {...}
 local dir = args[1] or env.PWD
+
+--print("args-1",args[1])
+
+-- resolve relative dir
+if args[1] and args[1]:byte(1) ~= 0x2F and args[1]:byte(1) ~= 0x5C then
+    dir = env.PWD .. args[1]
+end
+
+local realdir = LIX_REAL_PWD .. dir
+
+--print("lsdir", dir)
+--print("realdir", realdir)
+
+for name, _ in lfs.dir(realdir) do
+    mode = lfs.attributes(realdir .. "/" .. name, "mode")
+    if mode == "directory" then
+        print(name .. "/")
+    else
+        print(name)
+    end
+end
