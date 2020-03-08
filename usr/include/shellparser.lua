@@ -6,6 +6,10 @@
 
 if not _G.shell then _G.shell = {} end
 
+shell.windowwidth = function()
+    return 80 -- TODO query relevant API for relevant running environment
+end
+
 shell.trim_spaces = function(s)
     -- trim indents
     if s:byte() == 32 then

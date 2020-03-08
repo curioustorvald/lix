@@ -5,3 +5,4 @@
 ---
 
 local args = {...}
+local dir = args[1] or env.PWD
