@@ -4,7 +4,7 @@
 --- DateTime: 2019-11-03 03:28
 ---
 
-print(motd[1])
+print(motd[1].." on "..WHOAMI)
 print[[Lix is a Linux simulator written in Lua and built for Lua shells.
 Lix simulates its target operation system only in the surface level; it's not
 really meant to be a  serious operation system.  After all, it's just for fun.]]

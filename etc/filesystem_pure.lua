@@ -37,6 +37,10 @@ fs.isDirectory = function(path)
     return lfs.attributes(resolve(path), "mode") == "directory"
 end
 
+fs.exists = function(path)
+    return (lfs.attributes(resolve(path))) and true or false
+end
+
 fs.open = function(path, mode)
     return io.open(resolve(path), mode)
 end
@@ -46,6 +50,7 @@ fs.open = function(path)
 end
 
 fs.copy = function(from, to)
+    TODO()
 end
 
 fs.rename = function(old, new)
