@@ -21,7 +21,7 @@ end
 
 local names = {}
 for name, _ in fs.list(dir) do
-    if fs.isDirectory(dir .. "/" .. name) then
+    if fs.isDirectory(dir .. "/" .. name) and name:sub(-1) ~= "/" then -- checking trailing '/' because of the OpenComputers
         table.insert(names, name .. "/")
     else
         table.insert(names, name)

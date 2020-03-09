@@ -37,9 +37,9 @@ if _CC_DEFAULT_SETTINGS then
     _G.WHOAMI = "CC" -- ComputerCraft
 elseif _OSVERSION and _OSVERSION:sub(1,6) == "OpenOS" then
     _G.WHOAMI = "OC" -- OpenComputers
-elseif package.config:sub(1,1) == "\\" then -- determine POSIX/Windows using path separator (hah!)
+elseif package.config and package.config:sub(1,1) == "\\" then -- determine POSIX/Windows using path separator (hah!)
     _G.WHOAMI = "WINDOWS"
-elseif package.config:sub(1,1) == "/" then
+elseif package.config and package.config:sub(1,1) == "/" then
     _G.WHOAMI = "POSIX"
 else
     _G.WHOAMI = "LUA" -- have no idea
