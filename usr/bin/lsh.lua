@@ -5,7 +5,7 @@
 ---
 
 require("etc/motd")
-require("shellparser")
+local shell = require("shellparser")
 
 local args = {...}
 
@@ -111,11 +111,50 @@ _lix_invoke = function(args)
 end
 --- end of Application Stub
 
+local cmd_history = {}
+
+local function exit_lsh()
+    tty.setsanemode()
+    os.exit(0)
+end
+
+local function readcmd()
+    local cmd_buffer = "" -- cmd_history may overwrite this
+    tty.setrawmode()
+
+    for key in tty.input() do        
+        -- Ctrl+C / Ctrl+D
+        if key == 3 or key == 4 then
+            io.write("exit ")
+            exit_lsh()
+        -- return key
+        elseif key == 13 then
+            break
+        -- will ignore untreated control keys (e.g. PgUp, PgDn)
+        elseif key < 256 then
+            char = string.char(key)
+            cmd_buffer = cmd_buffer .. char
+            io.write(char)
+        end
+    end
+
+    -- special pseudo-commands
+    if cmd_buffer:sub(1,4) == "exit" then
+        exit_lsh()
+    elseif cmd_buffer:len() > 0 then
+        table.insert(cmd_history, cmd_buffer)
+    end
+
+    return cmd_buffer
+end
+
 print(motd[1])
 
 while true do
     printPrompt()
-    local user_input = shell.parse(io.read())
+    local user_input = shell.parse(readcmd())
+    tty.setsanemode()
+    io.write('\n')
     if user_input then
         --print("debug print;") for i, v in ipairs(user_input) do print(i, v) end
         _lix_invoke(user_input)

@@ -18,7 +18,9 @@ end) then
 end
 
 
-if not _G.fs then _G.fs = {} end
+if not _G.fs then
+
+_G.fs = {}
 
 --- the real pwd of current operation system (Windows or Linux)
 --- for virtualised environment (e.g. OpenComputers mod for Minecraft), this
@@ -69,4 +71,6 @@ fs.remove = function(path)
             end
         end
     end
+end
+
 end

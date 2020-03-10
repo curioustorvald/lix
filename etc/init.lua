@@ -14,7 +14,7 @@ dofile("etc/lua5152compat.lua")
 _G.LIX_VERSION = "0.1"
 _G.LIX_LOGO =     [[
               ..
-        ...  ;##;               ..
+        ___  ;##;               ..
       ,m###m, ""    "##"       ;##;
     ,W####MM#W,      ##         ""
    ,W#####  ##W.     ##        "##  "##;, 'WM"
@@ -33,7 +33,9 @@ _G.LIX_PATH = { -- used by lsh
 }
 
 
-if _CC_DEFAULT_SETTINGS then
+if _TERRARUM_VERSION then
+    _G.WHOAMI = "TERRARUM" -- future proofing for my own game
+elseif _CC_DEFAULT_SETTINGS then
     _G.WHOAMI = "CC" -- ComputerCraft
 elseif _OSVERSION and _OSVERSION:sub(1,6) == "OpenOS" then
     _G.WHOAMI = "OC" -- OpenComputers
@@ -45,9 +47,6 @@ else
     _G.WHOAMI = "LUA" -- have no idea
 end
 
---- define paths for require(); we'll re-define everything for the VM's sake
---- if this line does not work, it must be set by the Lua VM (LuaJ)
-package.path = "?.lua;usr/include/?.lua;"
 
 _G.LIX_MSG_INSTALL_PACKAGE = function(packname)
     print("Required package not found, please install it by running:")
@@ -55,23 +54,53 @@ _G.LIX_MSG_INSTALL_PACKAGE = function(packname)
     os.exit(1)
 end
 
-
+local path = "?.lua;usr/include/?.lua;"
 
 --- continue to load necessary constants
 
-
-if WHOAMI == "CC" then
+if WHOAMI == "TERRARUM" then
+    dofile("etc/filesystem_opencomputers.lua")
+elseif WHOAMI == "CC" then
     error("ComputerCraft not supported, sorry :(")
 elseif WHOAMI == "OC" then
+    --- define paths for require(); we'll re-define everything for the VM's sake
+    --- if this line does not work, it must be set by the Lua VM (LuaJ)
+    package.path = package.path .. path
+
     dofile("etc/filesystem_opencomputers.lua")
-elseif WHOAMI == "WINDOWS" then 
+    dofile("etc/tty_opencomputers.lua")
+elseif WHOAMI == "WINDOWS" then
+    --- define paths for require(); we'll re-define everything for the VM's sake
+    --- if this line does not work, it must be set by the Lua VM (LuaJ)
+    package.path = path
+
     dofile("etc/filesystem_windows.lua")
+    print("Terminal function is not implemented in Windows.")
+    print("Please run Lix using WSL.")
+    os.exit(1)
 elseif WHOAMI == "POSIX" then
+    --- define paths for require(); we'll re-define everything for the VM's sake
+    --- if this line does not work, it must be set by the Lua VM (LuaJ)
+    package.path = path
+
     dofile("etc/filesystem_posix.lua")
+    dofile("etc/plterm.lua")
 else
     dofile("etc/filesystem_pure.lua")
 end
 
-
 --- launch system shell in single user mode
+xpcall(function()
+
 dofile("bin/sh.lua")
+
+end, function(error)
+
+tty.setsanemode()
+print("")
+print(error.."\n")
+
+end)
+
+tty.setsanemode()
+print("k bye")

@@ -4,7 +4,7 @@
 --- DateTime: 2019-11-04 12:33
 ---
 
-if not _G.shell then _G.shell = {} end
+local shell = {}
 
 shell.windowwidth = function()
     return 80 -- TODO query relevant API for relevant running environment
@@ -77,3 +77,5 @@ shell.parse = function(s)
 
     return t
 end
+
+return shell
